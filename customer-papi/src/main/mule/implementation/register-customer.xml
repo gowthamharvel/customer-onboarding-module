@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<flow name="register-customerFlow" doc:id="2e47600c-ba57-4fbf-b31f-7deb3b61a8bb" >
+		<ee:transform doc:name="Transform Message" doc:id="bff222bd-6d9f-4cf1-b943-0cd49daea5bb" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+[{
+	"contactType__c": payload.registrationRequest.contactType,
+	"countryCode__c": payload.registrationRequest.countryCode,
+	"mobile__c": payload.registrationRequest.mobile,
+	"email__c": payload.registrationRequest.email,
+	"password__c": payload.registrationRequest.password,
+	"acceptDataPolicy__c": if(payload.registrationRequest.acceptDataPolicy==true) "true" else "false",
+	"receiveNews__c": if(payload.registrationRequest.acceptDataPolicy==true) "true" else "false",
+	"acceptPIC__c": if(payload.registrationRequest.acceptPIC==true) "true" else "false",
+	"locale__c": payload.registrationRequest.locale,
+	"captchatoken__c": payload.registrationRequest.captchatoken,
+	"receiveClaimSettle__c": if(payload.registrationRequest.captchatoken == true) "true" else "false"
+	
+	}
+	
+	]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:create doc:name="Create" doc:id="45a3b1d3-b449-4e2d-bd6f-466ab74673da" config-ref="Salesforce_Config" type="registration__c"/>
+		<ee:transform doc:name="Transform Message" doc:id="7cafd1a2-50cf-4e1f-9ff6-a6f06f353353" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "registrationResponse": {
+    "eventInstanceId": "dsfhdbfhsbdfhjsb3784t2wfsd",
+    "status": "success",
+    message: payload
+  }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

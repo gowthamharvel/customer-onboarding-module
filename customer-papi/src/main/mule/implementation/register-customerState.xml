@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="2058c1d7-73f3-43e1-af0d-a24e0d6de7c8" >
+		<http:request-connection host="${secure::customerSAPI.host}" port="${secure::customerSAPI.port}" />
+	</http:request-config>
+	<flow name="register-customerState-Flow" doc:id="2e47600c-ba57-4fbf-b31f-7deb3b61a8bb" >
+		<logger level="INFO" doc:name="Logger" doc:id="494a9a2b-3355-4f60-9242-5e0dd9c4bfe8" message="Before calling salesforce SAPI"/>
+		<http:request method="POST" doc:name="Request" doc:id="fbd1890f-6a1d-43fe-91b0-40209934bbc0" config-ref="HTTP_Request_configuration" path="${secure::customerSAPI.path}">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client_secret" : attributes.headers.'client_secret',
+	"client_id" : attributes.headers.'client_id'
+}]]]></http:headers>
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"featureName" : attributes.queryParams.featureName
+}]]]></http:query-params>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="7cafd1a2-50cf-4e1f-9ff6-a6f06f353353" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "registrationResponse": {
+    "eventInstanceId": "dsfhdbfhsbdfhjsb3784t2wfsd",
+    "status": "success",
+    message: payload
+  }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		
+	</flow>
+</mule>

@@ -1,0 +1,12 @@
+http:
+  port: "8082"
+
+customerSAPI:
+  host: "0.0.0.0"
+  port: "8081"
+  path: "api/customers/customerState"
+
+salesforce:
+  username: "gowtham1234@wipro.com"
+  password: "Qwertyuiop123"
+  securityToken: "1eghBdJSoQlccUUEojLLOIjJE"

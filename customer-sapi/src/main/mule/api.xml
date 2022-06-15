@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+    <flow name="api-main">
+        <http:listener config-ref="api-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <set-variable value="#[attributes.headers.'x-cms-transactionID' default uuid()]" doc:name="Set Variable" doc:id="6c77ce53-b39c-4b8f-adaa-8d770cb85ccb" variableName="transactionId" />
+        <logger level="INFO" doc:name="Logger" doc:id="4d00a7f9-a313-42ed-a094-7318f755bbf0" />
+        <apikit:router config-ref="api-config" />
+        <error-handler ref="global-error-handler" />
+    </flow>
+    <flow name="api-console">
+        <http:listener config-ref="api-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="api-config" />
+        <error-handler ref="global-error-handler" />
+    </flow>
+    <flow name="post:\customers\registration:application\json:api-config" doc:id="cfb57d46-586f-4d7e-9e02-ed052ca56b93">
+        <logger level="INFO" doc:name="Logger" doc:id="18b8f4b5-3f0e-446b-b2ab-63e558b9d46e" message="Before calling Salesforce transactionID: #[vars.transactionId] \n payload: #[payload]" />
+        <flow-ref doc:name="Flow Reference" doc:id="780283c2-df14-416d-8b49-683adfc1b568" name="register-customerFlow" />
+    </flow>
+    <flow name="post:\customers\customerState:application\json:api-config">
+        <flow-ref doc:name="Flow Reference" doc:id="66473813-4db1-4ec3-adee-e17b149edb4d" name="register-customerState-Flow" />
+    </flow>
+    <flow name="Initialising-the-request-flow" doc:id="5127c661-5fd4-4145-91ba-3ad41bd063f4">
+        <ee:transform doc:name="Transform Message" doc:id="bcca803c-d50e-43df-bf55-7c68020e4057">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/java 
+---
+{
+}]]></ee:set-payload>
+            </ee:message>
+            <ee:variables>
+                <ee:set-variable variableName="headers.client_id"><![CDATA[attributes.headers.'client_id']]></ee:set-variable>
+                <ee:set-variable variableName="headers.client_secret"><![CDATA[attributes.header.'client_secret']]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+    </flow>
+</mule>

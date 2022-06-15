@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<flow name="register-customerState-Flow" doc:id="2e47600c-ba57-4fbf-b31f-7deb3b61a8bb" >
+		<logger level="INFO" doc:name="Logger" doc:id="494a9a2b-3355-4f60-9242-5e0dd9c4bfe8" message="Before calling salesforce "/>
+		<ee:transform doc:name="Transform Message" doc:id="bff222bd-6d9f-4cf1-b943-0cd49daea5bb" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+[{
+	"contactType__c": payload.customerState.contactType,
+	"countryCode__c": payload.customerState.countryCode,
+	"mobile__c": payload.customerState.mobile,
+	"email__c": payload.customerState.email,
+	"password__c": payload.customerState.password,
+	"status__c": payload.customerState.status
+	
+	}
+	
+	]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:create doc:name="Create" doc:id="45a3b1d3-b449-4e2d-bd6f-466ab74673da" config-ref="Salesforce_Config" type="customerState__c"/>
+		<ee:transform doc:name="Transform Message" doc:id="7cafd1a2-50cf-4e1f-9ff6-a6f06f353353" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "registrationResponse": {
+    "eventInstanceId": vars.transactionId,
+    "status": "success",
+    message: payload
+  }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		
+	</flow>
+</mule>
